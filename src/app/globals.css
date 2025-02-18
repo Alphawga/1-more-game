@@ -1,0 +1,140 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  /* Primary Colors */
+  --color-energy-orange: #FF6B00;
+  --color-trust-blue: #0066CC;
+
+  /* Secondary Colors */
+  --color-victory-gold: #FFD700;
+  --color-digital-black: #1A1A1A;
+
+  /* Accent Colors */
+  --color-growth-green: #00CC66;
+  --color-alert-red: #E74C3C;
+
+  /* Neutral Colors */
+  --color-cloud-white: #F5F5F5;
+  --color-pure-white: #FFFFFF;
+  --color-charcoal: #2C3E50;
+
+  /* Color variations for hover states */
+  --color-energy-orange-hover: #E65C00;
+  --color-trust-blue-hover: #0052A3;
+  
+  /* Color variations for disabled states */
+  --color-energy-orange-disabled: #FFB380;
+  --color-trust-blue-disabled: #80B3E6;
+
+  /* Gradient combinations */
+  --gradient-primary: linear-gradient(135deg, var(--color-energy-orange) 0%, var(--color-victory-gold) 100%);
+  --gradient-secondary: linear-gradient(135deg, var(--color-trust-blue) 0%, var(--color-growth-green) 100%);
+}
+
+/* Base styles */
+body {
+  background-color: var(--color-cloud-white);
+  color: var(--color-digital-black);
+}
+
+/* Utility classes */
+.text-primary {
+  color: var(--color-energy-orange);
+}
+
+.text-secondary {
+  color: var(--color-trust-blue);
+}
+
+.bg-primary {
+  background-color: var(--color-energy-orange);
+}
+
+.bg-secondary {
+  background-color: var(--color-trust-blue);
+}
+
+/* Button styles */
+.btn-primary {
+  background-color: var(--color-energy-orange);
+  color: var(--color-pure-white);
+  transition: background-color 0.3s ease;
+}
+
+.btn-primary:hover {
+  background-color: var(--color-energy-orange-hover);
+}
+
+.btn-primary:disabled {
+  background-color: var(--color-energy-orange-disabled);
+}
+
+.btn-secondary {
+  background-color: var(--color-trust-blue);
+  color: var(--color-pure-white);
+  transition: background-color 0.3s ease;
+}
+
+.btn-secondary:hover {
+  background-color: var(--color-trust-blue-hover);
+}
+
+.btn-secondary:disabled {
+  background-color: var(--color-trust-blue-disabled);
+}
+
+/* Alert styles */
+.alert-success {
+  background-color: var(--color-growth-green);
+  color: var(--color-pure-white);
+}
+
+.alert-error {
+  background-color: var(--color-alert-red);
+  color: var(--color-pure-white);
+}
+
+/* Card styles */
+.card {
+  background-color: var(--color-pure-white);
+  border: 1px solid var(--color-cloud-white);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+/* Achievement/badge styles */
+.badge-achievement {
+  background-color: var(--color-victory-gold);
+  color: var(--color-digital-black);
+}
+
+/* Dark mode support */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --color-cloud-white: #1A1A1A;
+    --color-pure-white: #2C3E50;
+    --color-digital-black: #F5F5F5;
+  }
+}
+
+/* Loading states */
+.loading-skeleton {
+  background: linear-gradient(
+    90deg,
+    var(--color-cloud-white) 25%,
+    var(--color-pure-white) 50%,
+    var(--color-cloud-white) 75%
+  );
+  background-size: 200% 100%;
+  animation: loading 1.5s infinite;
+}
+
+@keyframes loading {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
