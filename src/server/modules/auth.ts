@@ -3,19 +3,55 @@ import { router, publicProcedure } from '../trpc';
 import { hash, compare } from 'bcryptjs';
 import { prisma } from '../db';
 import { sign, verify } from 'jsonwebtoken';
-import { createTransport } from 'nodemailer';
 import { TRPCError } from '@trpc/server';
-
-const EMAIL_SERVER = {
-  host: process.env.SMTP_Server,
-  port: Number(process.env.SMTP_Port),
-  auth: {
-    user: process.env.SMTP_Login,
-    pass: process.env.SMTP_Password,
-  },
-};
+import { mailService } from '@/lib/mail/service';
+import { emailTemplates } from '@/lib/mail/templates';
 
 export const authRouter = router({
+  signin: publicProcedure
+    .input(
+      z.object({
+        email: z.string().email(),
+        password: z.string(),
+      })
+    )
+    .mutation(async ({ input }) => {
+      const { email, password } = input;
+
+      const user = await prisma.user.findUnique({
+        where: { email },
+      });
+
+      if (!user || !user.password) {
+        throw new TRPCError({
+          code: 'NOT_FOUND',
+          message: 'User not found',
+        });
+      }
+
+      if (!user.emailVerified) {
+        throw new TRPCError({
+          code: 'UNAUTHORIZED',
+          message: 'Please verify your email before signing in',
+        });
+      }
+
+      const isValid = await compare(password, user.password);
+
+      if (!isValid) {
+        throw new TRPCError({
+          code: 'UNAUTHORIZED',
+          message: 'Invalid password',
+        });
+      }
+
+      return {
+        id: user.id,
+        email: user.email,
+        name: user.name,
+      };
+    }),
+
   signup: publicProcedure
     .input(
       z.object({
@@ -43,7 +79,7 @@ export const authRouter = router({
         expiresIn: '1d',
       });
 
-      const user = await prisma.user.create({
+      await prisma.user.create({
         data: {
           email,
           password: hashedPassword,
@@ -53,15 +89,15 @@ export const authRouter = router({
         },
       });
 
-      // Send verification email
-      const transporter = createTransport(EMAIL_SERVER);
       const verificationLink = `${process.env.NEXTAUTH_URL}/auth/verify?token=${verificationToken}`;
 
-      await transporter.sendMail({
-        from: process.env.SMTP_Login,
+      await mailService.sendMail({
         to: email,
         subject: 'Verify your email',
-        html: `Please click <a href="${verificationLink}">here</a> to verify your email.`,
+        html: emailTemplates.verification({
+          name,
+          link: verificationLink,
+        }),
       });
 
       return {
@@ -104,7 +140,7 @@ export const authRouter = router({
           status: 'success',
           message: 'Email verified successfully',
         };
-      } catch (error) {
+      } catch {
         throw new TRPCError({
           code: 'BAD_REQUEST',
           message: 'Invalid verification token',
@@ -125,13 +161,13 @@ export const authRouter = router({
         });
 
         const resetLink = `${process.env.NEXTAUTH_URL}/auth/reset-password?token=${token}`;
-        const transporter = createTransport(EMAIL_SERVER);
 
-        await transporter.sendMail({
-          from: process.env.SMTP_Login,
+        await mailService.sendMail({
           to: input.email,
           subject: 'Reset your password',
-          html: `Click <a href="${resetLink}">here</a> to reset your password.`,
+          html: emailTemplates.resetPassword({
+            link: resetLink,
+          }),
         });
       }
 

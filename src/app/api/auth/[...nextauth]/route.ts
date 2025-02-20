@@ -1,11 +1,21 @@
 import NextAuth from 'next-auth';
 import { AuthOptions } from 'next-auth';
 import CredentialsProvider from 'next-auth/providers/credentials';
+import GoogleProvider from 'next-auth/providers/google';
+import FacebookProvider from 'next-auth/providers/facebook';
 import { prisma } from '@/server/db';
 import { compare } from 'bcryptjs';
 
 export const authOptions: AuthOptions = {
   providers: [
+    GoogleProvider({
+      clientId: process.env.GOOGLE_CLIENT_ID!,
+      clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
+    }),
+    FacebookProvider({
+      clientId: process.env.FACEBOOK_CLIENT_ID!,
+      clientSecret: process.env.FACEBOOK_CLIENT_SECRET!,
+    }),
     CredentialsProvider({
       name: 'credentials',
       credentials: {
@@ -53,17 +63,36 @@ export const authOptions: AuthOptions = {
     error: '/auth/error',
   },
   callbacks: {
-    jwt: async ({ token, user }) => {
+    async signIn({ user, account }) {
+      if (account?.provider === 'google' || account?.provider === 'facebook') {
+        const existingUser = await prisma.user.findUnique({
+          where: { email: user.email! },
+        });
+
+        if (!existingUser) {
+          await prisma.user.create({
+            data: {
+              email: user.email!,
+              name: user.name,
+              emailVerified: true, // OAuth emails are pre-verified
+              avatar: user.image,
+            },
+          });
+        }
+      }
+      return true;
+    },
+    async session({ session, token }) {
+      if (token && session.user) {
+        session.user.id = token.sub!;
+      }
+      return session;
+    },
+    async jwt({ token, user }) {
       if (user) {
         token.id = user.id;
       }
       return token;
-    },
-    session: async ({ session, token }) => {
-      if (token) {
-        session.user.id = token.id as string;
-      }
-      return session;
     },
   },
 };

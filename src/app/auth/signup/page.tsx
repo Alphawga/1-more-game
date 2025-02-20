@@ -4,6 +4,7 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { trpc } from '@/utils/trpc';
+import SocialLogin from '@/components/auth/SocialLogin';
 
 export default function SignUp() {
   const router = useRouter();
@@ -117,6 +118,8 @@ export default function SignUp() {
             </Link>
           </div>
         </form>
+
+        <SocialLogin />
       </div>
     </div>
   );

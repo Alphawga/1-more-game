@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
+import { trpc } from '@/utils/trpc';
 
 export default function VerifyEmail() {
   const searchParams = useSearchParams();
@@ -9,29 +10,26 @@ export default function VerifyEmail() {
   const [status, setStatus] = useState<'loading' | 'success' | 'error'>('loading');
   const token = searchParams.get('token');
 
+  const verifyEmail = trpc.auth.verifyEmail.useMutation({
+    onSuccess: () => {
+      setStatus('success');
+      setTimeout(() => {
+        router.push('/auth/signin');
+      }, 3000);
+    },
+    onError: () => {
+      setStatus('error');
+    },
+  });
+
   useEffect(() => {
     if (!token) {
       setStatus('error');
       return;
     }
 
-    fetch('/api/auth/verify', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ token }),
-    })
-      .then((res) => {
-        if (res.ok) {
-          setStatus('success');
-          setTimeout(() => {
-            router.push('/auth/signin');
-          }, 3000);
-        } else {
-          setStatus('error');
-        }
-      })
-      .catch(() => setStatus('error'));
-  }, [token, router]);
+    verifyEmail.mutate({ token });
+  }, [token]);
 
   return (
     <div className="min-h-screen flex items-center justify-center">

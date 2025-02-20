@@ -3,6 +3,7 @@
 import { signIn } from 'next-auth/react';
 import { useState } from 'react';
 import Link from 'next/link';
+import SocialLogin from '@/components/auth/SocialLogin';
 
 export default function SignIn() {
   const [email, setEmail] = useState('');
@@ -22,6 +23,7 @@ export default function SignIn() {
         setError(result.error);
       }
     } catch (error) {
+      console.error(error);
       setError('An error occurred during sign in');
     }
   };
@@ -72,6 +74,14 @@ export default function SignIn() {
             Sign In
           </button>
         </form>
+
+        <div className="text-center text-sm">
+          <Link href="/auth/signup" className="text-blue-600">
+            Don&apos;t have an account? Sign up
+          </Link>
+        </div>
+
+        <SocialLogin />
       </div>
     </div>
   );
