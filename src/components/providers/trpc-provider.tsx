@@ -6,7 +6,7 @@ import { useState } from 'react';
 import { trpc } from '@/utils/trpc';
 
 export function TRPCProvider({ children }: { children: React.ReactNode }) {
-  const [queryClient] = useState(() => new QueryClient({}));
+  const [queryClient] = useState(() => new QueryClient());
   const [trpcClient] = useState(() =>
     trpc.createClient({
       links: [
