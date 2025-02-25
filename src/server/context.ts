@@ -1,6 +1,5 @@
-import * as trpc from '@trpc/server';
 import { getServerSession } from 'next-auth/next';
-import { authOptions } from '../app/api/auth/[...nextauth]/route';
+import { authOptions } from '../app/api/auth/auth.config';
 
 interface CreateContextOptions {
   req: Request;

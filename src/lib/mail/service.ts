@@ -7,6 +7,10 @@ interface EmailConfig {
     user: string;
     pass: string;
   };
+  secure: boolean;
+  tls: {
+    rejectUnauthorized: boolean;
+  };
 }
 
 interface EmailOptions {
@@ -44,8 +48,12 @@ class MailService {
 export const mailService = new MailService({
   host: process.env.SMTP_Server!,
   port: Number(process.env.SMTP_Port),
+  secure: false, // false for port 587, true for port 465
   auth: {
     user: process.env.SMTP_Login!,
     pass: process.env.SMTP_Password!,
   },
+  tls: {
+    rejectUnauthorized: true // Set to true for production
+  }
 }); 

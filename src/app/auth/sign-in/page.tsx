@@ -76,7 +76,7 @@ export default function SignIn() {
         </form>
 
         <div className="text-center text-sm">
-          <Link href="/auth/signup" className="text-blue-600">
+          <Link href="/auth/sign-up" className="text-blue-600">
             Don&apos;t have an account? Sign up
           </Link>
         </div>

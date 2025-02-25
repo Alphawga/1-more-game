@@ -2,10 +2,10 @@ import { z } from 'zod';
 import { router, publicProcedure } from '../trpc';
 import { hash, compare } from 'bcryptjs';
 import { prisma } from '../db';
-import { sign, verify } from 'jsonwebtoken';
 import { TRPCError } from '@trpc/server';
 import { mailService } from '@/lib/mail/service';
 import { emailTemplates } from '@/lib/mail/templates';
+import { randomBytes } from 'crypto';
 
 export const authRouter = router({
   signin: publicProcedure
@@ -75,10 +75,10 @@ export const authRouter = router({
       }
 
       const hashedPassword = await hash(password, 10);
-      const verificationToken = sign({ email }, process.env.NEXTAUTH_SECRET!, {
-        expiresIn: '1d',
-      });
+      const verificationToken = randomBytes(32).toString("hex");
+      const expires = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 hours
 
+    
       await prisma.user.create({
         data: {
           email,
@@ -86,6 +86,7 @@ export const authRouter = router({
           name,
           emailVerified: false,
           verificationToken,
+          verificationTokenExpires: expires,
         },
       });
 
@@ -110,21 +111,19 @@ export const authRouter = router({
     .input(z.object({ token: z.string() }))
     .mutation(async ({ input }) => {
       try {
-        const decoded = verify(input.token, process.env.NEXTAUTH_SECRET!) as {
-          email: string;
-        };
-
         const user = await prisma.user.findFirst({
           where: {
-            email: decoded.email,
             verificationToken: input.token,
+            verificationTokenExpires: {
+              gt: new Date(),
+            },
           },
         });
 
         if (!user) {
           throw new TRPCError({
             code: 'NOT_FOUND',
-            message: 'Invalid verification token',
+            message: 'Invalid or expired verification token',
           });
         }
 
@@ -133,6 +132,7 @@ export const authRouter = router({
           data: {
             emailVerified: true,
             verificationToken: null,
+            verificationTokenExpires: null,
           },
         });
 
@@ -156,11 +156,18 @@ export const authRouter = router({
       });
 
       if (user) {
-        const token = sign({ userId: user.id }, process.env.RESET_TOKEN_SECRET!, {
-          expiresIn: '1h',
+        const resetPasswordToken = randomBytes(32).toString("hex");
+        const expires = new Date(Date.now() + 1 * 60 * 60 * 1000); // 1 hour
+
+        await prisma.user.update({
+          where: { id: user.id },
+          data: {
+            resetPasswordToken,
+            resetPasswordExpires: expires,
+          },
         });
 
-        const resetLink = `${process.env.NEXTAUTH_URL}/auth/reset-password?token=${token}`;
+        const resetLink = `${process.env.NEXTAUTH_URL}/auth/reset-password?token=${resetPasswordToken}`;
 
         await mailService.sendMail({
           to: input.email,

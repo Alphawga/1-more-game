@@ -38,7 +38,7 @@ export default function ForgotPassword() {
         {status === 'success' ? (
           <div className="text-center">
             <p className="text-green-600">
-              If an account exists with that email, we've sent password reset instructions.
+              If an account exists with that email, we&apos;ve sent password reset instructions.
             </p>
             <p className="mt-2">Redirecting to login page...</p>
           </div>

@@ -1,6 +1,6 @@
 "use client"
 import Link from 'next/link';
-import Image from 'next/image';
+// import Image from 'next/image';
 import { useState, useEffect } from 'react';
 
 export default function Navbar() {
@@ -26,13 +26,13 @@ export default function Navbar() {
             href="/" 
             className="flex items-center transform hover:scale-105 transition-transform"
           >
-            <Image
+            {/* <Image
               src="/images/logo.png"
               alt="1More Game"
               width={40}
               height={40}
               className="mr-2"
-            />
+            /> */}
             <span className={`text-xl font-bold ${
               scrolled ? 'text-digital-black' : 'text-pure-white'
             }`}>
@@ -57,7 +57,7 @@ export default function Navbar() {
 
           <div className="flex items-center space-x-4">
             <Link 
-              href="/login" 
+              href="/auth/sign-in" 
               className={`relative overflow-hidden group px-4 py-2 rounded-full transition-all duration-300 ${
                 scrolled ? 'text-trust-blue' : 'text-pure-white'
               }`}
@@ -66,7 +66,7 @@ export default function Navbar() {
               <span className="absolute inset-0 w-0 bg-trust-blue group-hover:w-full transition-all duration-300 opacity-10" />
             </Link>
             <Link 
-              href="/signup" 
+              href="/auth/sign-up" 
               className="btn-primary px-6 py-2 rounded-full font-medium transform hover:scale-105 transition-all duration-300 hover:shadow-lg"
             >
               Sign Up

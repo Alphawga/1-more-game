@@ -20,6 +20,9 @@ export default function Footer() {
                 <li><Link href="/browse" className="text-cloud-white/70 hover:text-energy-orange transition-colors">Browse Games</Link></li>
                 <li><Link href="/pricing" className="text-cloud-white/70 hover:text-energy-orange transition-colors">Pricing</Link></li>
                 <li><Link href="/support" className="text-cloud-white/70 hover:text-energy-orange transition-colors">Support</Link></li>
+                <li><Link href="/community" className="text-cloud-white/70 hover:text-energy-orange transition-colors">Community</Link></li>
+                <li><Link href="/rewards" className="text-cloud-white/70 hover:text-energy-orange transition-colors">Rewards</Link></li>
+                <li><Link href="/support" className="text-cloud-white/70 hover:text-energy-orange transition-colors">Support</Link></li>
               </ul>
             </div>
             <div>

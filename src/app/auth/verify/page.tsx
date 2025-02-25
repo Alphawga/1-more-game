@@ -1,10 +1,10 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, Suspense } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { trpc } from '@/utils/trpc';
 
-export default function VerifyEmail() {
+function VerifyEmailContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const [status, setStatus] = useState<'loading' | 'success' | 'error'>('loading');
@@ -29,7 +29,7 @@ export default function VerifyEmail() {
     }
 
     verifyEmail.mutate({ token });
-  }, [token]);
+  }, [token, verifyEmail]);
 
   return (
     <div className="min-h-screen flex items-center justify-center">
@@ -49,5 +49,19 @@ export default function VerifyEmail() {
         )}
       </div>
     </div>
+  );
+}
+
+export default function VerifyEmail() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="max-w-md w-full space-y-8 p-8 text-center">
+          <p>Loading...</p>
+        </div>
+      </div>
+    }>
+      <VerifyEmailContent />
+    </Suspense>
   );
 } 

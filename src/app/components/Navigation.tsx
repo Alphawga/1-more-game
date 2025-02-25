@@ -1,9 +1,10 @@
 'use client';
 
 import Link from 'next/link';
+import { Session } from 'next-auth';  
 
 interface NavigationProps {
-  session: any;
+  session: Session | null;
 }
 
 export default function Navigation({ session }: NavigationProps) {
