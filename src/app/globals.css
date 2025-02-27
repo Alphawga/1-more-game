@@ -33,10 +33,58 @@
   --gradient-secondary: linear-gradient(135deg, var(--color-trust-blue) 0%, var(--color-growth-green) 100%);
 }
 
+/* Dark theme variables */
+[data-theme="dark"] {
+  /* Primary Colors - Dark Theme */
+  --color-digital-black: #0A0A0F;
+  --color-cloud-white: #E5E7EB;
+  --color-pure-white: #F3F4F6;
+  --color-charcoal: #1F2937;
+
+  /* Surface Colors - Dark Theme */
+  --color-surface-1: #121218;
+  --color-surface-2: #1A1A23;
+  --color-surface-3: #23232D;
+
+  /* Text Colors - Dark Theme */
+  --color-text-primary: rgba(243, 244, 246, 0.95);
+  --color-text-secondary: rgba(243, 244, 246, 0.75);
+  --color-text-tertiary: rgba(243, 244, 246, 0.5);
+
+  /* Glass Effect - Dark Theme */
+  --glass-bg: rgba(255, 255, 255, 0.03);
+  --glass-border: rgba(255, 255, 255, 0.05);
+  --glass-blur: 8px;
+}
+
+/* Light theme variables */
+[data-theme="light"] {
+  /* Primary Colors - Light Theme */
+  --color-digital-black: #2C3E50;
+  --color-cloud-white: #FFFFFF;
+  --color-pure-white: #FFFFFF;
+  --color-charcoal: #4A5568;
+
+  /* Surface Colors - Light Theme */
+  --color-surface-1: #FFFFFF;
+  --color-surface-2: #F7FAFC;
+  --color-surface-3: #EDF2F7;
+
+  /* Text Colors - Light Theme */
+  --color-text-primary: rgba(44, 62, 80, 0.95);
+  --color-text-secondary: rgba(44, 62, 80, 0.75);
+  --color-text-tertiary: rgba(44, 62, 80, 0.5);
+
+  /* Glass Effect - Light Theme */
+  --glass-bg: rgba(255, 255, 255, 0.7);
+  --glass-border: rgba(255, 255, 255, 0.8);
+  --glass-blur: 10px;
+}
+
 /* Base styles */
 body {
-  background-color: var(--color-cloud-white);
-  color: var(--color-digital-black);
+  background-color: var(--color-surface-1);
+  color: var(--color-text-primary);
 }
 
 /* Utility classes */
@@ -98,8 +146,8 @@ body {
 
 /* Card styles */
 .card {
-  background-color: var(--color-pure-white);
-  border: 1px solid var(--color-cloud-white);
+  background-color: var(--color-surface-1);
+  border: 1px solid var(--glass-border);
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
@@ -109,22 +157,27 @@ body {
   color: var(--color-digital-black);
 }
 
-/* Dark mode support */
-@media (prefers-color-scheme: dark) {
-  :root {
-    --color-cloud-white: #1A1A1A;
-    --color-pure-white: #2C3E50;
-    --color-digital-black: #F5F5F5;
-  }
+/* Glass Effect */
+.glass-effect {
+  background: var(--glass-bg);
+  backdrop-filter: blur(var(--glass-blur));
+  -webkit-backdrop-filter: blur(var(--glass-blur));
+  border: 1px solid var(--glass-border);
+  transition: all 0.2s ease-out;
+}
+
+.glass-effect:hover {
+  background: rgba(255, 255, 255, 0.15);
+  transform: translateY(-2px);
 }
 
 /* Loading states */
 .loading-skeleton {
   background: linear-gradient(
     90deg,
-    var(--color-cloud-white) 25%,
-    var(--color-pure-white) 50%,
-    var(--color-cloud-white) 75%
+    var(--color-surface-1) 25%,
+    var(--color-surface-2) 50%,
+    var(--color-surface-1) 75%
   );
   background-size: 200% 100%;
   animation: loading 1.5s infinite;
@@ -196,13 +249,6 @@ body {
   transform: translateY(-5px);
 }
 
-/* Glass Effect */
-.glass-effect {
-  background: rgba(255, 255, 255, 0.1);
-  -webkit-backdrop-filter: blur(10px);
-  backdrop-filter: blur(10px);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-}
 .spline-container canvas {
   background: transparent !important;
 }

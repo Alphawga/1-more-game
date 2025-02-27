@@ -2,10 +2,12 @@
 import Link from 'next/link';
 // import Image from 'next/image';
 import { useState, useEffect } from 'react';
+import { useTheme } from './ThemeProvider';
 
 export default function Navbar() {
   const [scrolled, setScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const { theme } = useTheme();
 
   // Handle navbar background on scroll
   useEffect(() => {
@@ -18,7 +20,11 @@ export default function Navbar() {
 
   return (
     <nav className={`fixed w-full z-50 transition-all duration-300 ${
-      scrolled ? 'bg-white shadow-lg  z-20' : 'bg-transparent'
+      scrolled 
+        ? theme === 'dark'
+          ? 'bg-digital-black/95 backdrop-blur-sm'
+          : 'bg-cloud-white/95 backdrop-blur-sm shadow-lg'
+        : 'bg-transparent'
     }`}>
       <div className="container mx-auto px-6">
         <div className="flex justify-between items-center h-20">
@@ -34,7 +40,11 @@ export default function Navbar() {
               className="mr-2"
             /> */}
             <span className={`text-xl font-bold ${
-              scrolled ? 'text-digital-black' : 'text-pure-white'
+              scrolled 
+                ? theme === 'dark'
+                  ? 'text-cloud-white'
+                  : 'text-digital-black'
+                : 'text-pure-white'
             }`}>
               1More Game
             </span>
@@ -46,7 +56,11 @@ export default function Navbar() {
                 key={link.href}
                 href={link.href}
                 className={`relative group ${
-                  scrolled ? 'text-charcoal' : 'text-pure-white'
+                  scrolled 
+                    ? theme === 'dark'
+                      ? 'text-cloud-white'
+                      : 'text-charcoal'
+                    : 'text-pure-white'
                 }`}
               >
                 {link.label}
@@ -59,7 +73,11 @@ export default function Navbar() {
             <Link 
               href="/auth/sign-in" 
               className={`relative overflow-hidden group px-4 py-2 rounded-full transition-all duration-300 ${
-                scrolled ? 'text-trust-blue' : 'text-pure-white'
+                scrolled 
+                  ? theme === 'dark'
+                    ? 'text-cloud-white'
+                    : 'text-trust-blue'
+                  : 'text-pure-white'
               }`}
             >
               <span className="relative z-10">Login</span>
@@ -75,7 +93,9 @@ export default function Navbar() {
 
           {/* Mobile Menu Button */}
           <button 
-            className="md:hidden text-energy-orange"
+            className={`md:hidden ${
+              theme === 'dark' ? 'text-cloud-white' : 'text-energy-orange'
+            }`}
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
             aria-label="Toggle mobile menu"
             title="Toggle mobile menu"
@@ -89,15 +109,23 @@ export default function Navbar() {
 
       {/* Mobile Menu Dropdown */}
       <div className={`md:hidden transition-all duration-300 ${mobileMenuOpen ? 'block' : 'hidden'}`}>
-        {navLinks.map((link) => (
-          <Link
-            key={link.href}
-            href={link.href}
-            className="block px-6 py-2 text-charcoal hover:bg-cloud-white"
-          >
-            {link.label}
-          </Link>
-        ))}
+        <div className={`${
+          theme === 'dark' ? 'bg-digital-black/95' : 'bg-cloud-white/95'
+        }`}>
+          {navLinks.map((link) => (
+            <Link
+              key={link.href}
+              href={link.href}
+              className={`block px-6 py-2 ${
+                theme === 'dark'
+                  ? 'text-cloud-white hover:bg-digital-black/50'
+                  : 'text-charcoal hover:bg-cloud-white/50'
+              }`}
+            >
+              {link.label}
+            </Link>
+          ))}
+        </div>
       </div>
     </nav>
   );

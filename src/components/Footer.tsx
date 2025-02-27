@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import { ThemeToggle } from './ThemeToggle';
 
 export default function Footer() {
   return (
@@ -44,9 +45,12 @@ export default function Footer() {
           
           {/* Bottom bar */}
           <div className="mt-12 pt-8 border-t border-cloud-white/10">
-            <p className="text-center text-sm text-cloud-white/60">
-              © {new Date().getFullYear()} 1More Game. All rights reserved.
-            </p>
+            <div className="flex items-center justify-between">
+              <p className="text-sm text-cloud-white/60">
+                © {new Date().getFullYear()} 1More Game. All rights reserved.
+              </p>
+              <ThemeToggle />
+            </div>
           </div>
         </div>
       </div>

@@ -2,12 +2,25 @@
 
 import Link from 'next/link';
 import { Session } from 'next-auth';  
+import { useState, useEffect } from 'react';
+import { useTheme } from '@/components/ThemeProvider';
 
 interface NavigationProps {
   session: Session | null;
 }
 
 export default function Navigation({ session }: NavigationProps) {
+  const [scrolled, setScrolled] = useState(false);
+  const { theme } = useTheme();
+
+  useEffect(() => {
+    const handleScroll = () => {
+      setScrolled(window.scrollY > 20);
+    };
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
   const toggleMobileMenu = () => {
     const mobileMenu = document.getElementById('mobile-menu');
     if (mobileMenu) {
@@ -16,7 +29,13 @@ export default function Navigation({ session }: NavigationProps) {
   };
 
   return (
-    <nav className="fixed w-full z-50 bg-digital-black/80 backdrop-blur-sm">
+    <nav className={`fixed w-full z-50 transition-all duration-300 ${
+      scrolled 
+        ? theme === 'dark'
+          ? 'bg-digital-black/95 backdrop-blur-sm'
+          : 'bg-cloud-white/95 backdrop-blur-sm'
+        : 'bg-transparent'
+    }`}>
       <div className="container mx-auto px-6">
         <div className="flex items-center justify-between h-16">
           <Link href="/" className="flex items-center">
@@ -25,18 +44,18 @@ export default function Navigation({ session }: NavigationProps) {
           </Link>
           
           <div className="hidden md:flex items-center space-x-8">
-            <Link href="/browse" className="text-cloud-white hover:text-energy-orange transition-colors">
+            <Link href="/browse" className={`${theme === 'dark' ? 'text-cloud-white' : 'text-digital-black'} hover:text-energy-orange transition-colors`}>
               Browse
             </Link>
-            <Link href="/rewards" className="text-cloud-white hover:text-energy-orange transition-colors">
+            <Link href="/rewards" className={`${theme === 'dark' ? 'text-cloud-white' : 'text-digital-black'} hover:text-energy-orange transition-colors`}>
               Rewards
             </Link>
-            <Link href="/community" className="text-cloud-white hover:text-energy-orange transition-colors">
+            <Link href="/community" className={`${theme === 'dark' ? 'text-cloud-white' : 'text-digital-black'} hover:text-energy-orange transition-colors`}>
               Community
             </Link>
             {!session ? (
               <>
-                <Link href="/login" className="text-cloud-white hover:text-energy-orange transition-colors">
+                <Link href="/login" className={`${theme === 'dark' ? 'text-cloud-white' : 'text-digital-black'} hover:text-energy-orange transition-colors`}>
                   Login
                 </Link>
                 <Link 
@@ -58,7 +77,7 @@ export default function Navigation({ session }: NavigationProps) {
 
           {/* Mobile menu button */}
           <button 
-            className="md:hidden text-cloud-white"
+            className={`md:hidden ${theme === 'dark' ? 'text-cloud-white' : 'text-digital-black'}`}
             aria-label="Open main menu"
             title="Open main menu"
             onClick={toggleMobileMenu}
@@ -71,22 +90,24 @@ export default function Navigation({ session }: NavigationProps) {
 
         {/* Mobile menu */}
         <div id="mobile-menu" className="hidden md:hidden">
-          <div className="px-2 pt-2 pb-3 space-y-1">
+          <div className={`px-2 pt-2 pb-3 space-y-1 ${
+            theme === 'dark' ? 'bg-digital-black/95' : 'bg-cloud-white/95'
+          }`}>
             <Link 
               href="/browse" 
-              className="block px-3 py-2 rounded-md text-base font-medium text-cloud-white hover:text-energy-orange transition-colors"
+              className={`block px-3 py-2 rounded-md text-base font-medium ${theme === 'dark' ? 'text-cloud-white' : 'text-digital-black'} hover:text-energy-orange transition-colors`}
             >
               Browse
             </Link>
             <Link 
               href="/rewards" 
-              className="block px-3 py-2 rounded-md text-base font-medium text-cloud-white hover:text-energy-orange transition-colors"
+              className={`block px-3 py-2 rounded-md text-base font-medium ${theme === 'dark' ? 'text-cloud-white' : 'text-digital-black'} hover:text-energy-orange transition-colors`}
             >
               Rewards
             </Link>
             <Link 
               href="/community" 
-              className="block px-3 py-2 rounded-md text-base font-medium text-cloud-white hover:text-energy-orange transition-colors"
+              className={`block px-3 py-2 rounded-md text-base font-medium ${theme === 'dark' ? 'text-cloud-white' : 'text-digital-black'} hover:text-energy-orange transition-colors`}
             >
               Community
             </Link>
@@ -94,7 +115,7 @@ export default function Navigation({ session }: NavigationProps) {
               <>
                 <Link 
                   href="/login" 
-                  className="block px-3 py-2 rounded-md text-base font-medium text-cloud-white hover:text-energy-orange transition-colors"
+                  className={`block px-3 py-2 rounded-md text-base font-medium ${theme === 'dark' ? 'text-cloud-white' : 'text-digital-black'} hover:text-energy-orange transition-colors`}
                 >
                   Login
                 </Link>
