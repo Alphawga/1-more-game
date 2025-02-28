@@ -19,7 +19,7 @@ export default function Navbar() {
   }, []);
 
   return (
-    <nav className={`fixed w-full z-50 transition-all duration-300 ${
+    <nav className={`fixed w-full z-50 transition-all duration-300 pt-7 ${
       scrolled 
         ? theme === 'dark'
           ? 'bg-digital-black/95 backdrop-blur-sm'
@@ -39,18 +39,27 @@ export default function Navbar() {
               height={40}
               className="mr-2"
             /> */}
-            <span className={`text-xl font-bold ${
+            <span className={`text-xl font-bold relative ${
               scrolled 
                 ? theme === 'dark'
-                  ? 'text-cloud-white'
-                  : 'text-digital-black'
-                : 'text-pure-white'
+                  ? 'text-white'
+                  : 'text-black'
+                : 'text-white'
             }`}>
-              1More Game
+              <span className="bg-clip-text text-transparent bg-gradient-to-r from-energy-orange via-victory-gold to-energy-orange bg-size-200 animate-gradient-x">
+                1More
+              </span>
+              <span className={`${
+                scrolled 
+                  ? theme === 'dark'
+                    ? 'text-white'
+                    : 'text-black'
+                  : 'text-black'
+              }`}>Game</span>
             </span>
           </Link>
 
-          <div className="hidden md:flex items-center space-x-8">
+          <div className="hidden md:flex items-center space-x-8 text-sm">
             {navLinks.map((link) => (
               <Link
                 key={link.href}
@@ -64,12 +73,12 @@ export default function Navbar() {
                 }`}
               >
                 {link.label}
-                <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-energy-orange transition-all duration-300 group-hover:w-full" />
+                <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-gradient-to-r from-energy-orange to-victory-gold transition-all duration-300 group-hover:w-full" />
               </Link>
             ))}
           </div>
 
-          <div className="flex items-center space-x-4">
+          <div className="flex items-center space-x-4 text-sm">
             <Link 
               href="/auth/sign-in" 
               className={`relative overflow-hidden group px-4 py-2 rounded-full transition-all duration-300 ${
@@ -81,13 +90,14 @@ export default function Navbar() {
               }`}
             >
               <span className="relative z-10">Login</span>
-              <span className="absolute inset-0 w-0 bg-trust-blue group-hover:w-full transition-all duration-300 opacity-10" />
+              <span className="absolute inset-0 w-0 bg-gradient-to-r from-trust-blue/20 to-trust-blue/30 group-hover:w-full transition-all duration-300" />
             </Link>
             <Link 
               href="/auth/sign-up" 
-              className="btn-primary px-6 py-2 rounded-full font-medium transform hover:scale-105 transition-all duration-300 hover:shadow-lg"
+              className="btn-primary px-6 py-2 rounded-full font-medium transform hover:scale-105 transition-all duration-300 hover:shadow-lg relative overflow-hidden group"
             >
-              Sign Up
+              <span className="relative z-10">Sign Up</span>
+              <span className="absolute inset-0 opacity-0 group-hover:opacity-100 bg-gradient-to-r from-energy-orange to-victory-gold transition-all duration-500 ease-out"></span>
             </Link>
           </div>
 
@@ -133,6 +143,7 @@ export default function Navbar() {
 
 const navLinks = [
   { href: '/browse', label: 'Browse' },
+  { href: '/marketplace', label: 'Marketplace' },
   { href: '/pricing', label: 'Pricing' },
   { href: '/support', label: 'Support' },
 ]; 
