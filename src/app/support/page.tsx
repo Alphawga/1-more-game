@@ -177,8 +177,8 @@ export default function Support() {
         <div className="text-center mt-16">
           <p className="text-cloud-white/80">
             Still need help? Contact our support team directly at{' '}
-            <a href="mailto:support@1moregame.com" className="text-energy-orange hover:text-energy-orange-hover">
-              support@1moregame.com
+            <a href="mailto:support@1Mogame.com" className="text-energy-orange hover:text-energy-orange-hover">
+              support@1Mogame.com
             </a>
           </p>
         </div>

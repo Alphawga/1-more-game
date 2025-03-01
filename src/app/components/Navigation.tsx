@@ -39,7 +39,7 @@ export default function Navigation({ session }: NavigationProps) {
       <div className="container mx-auto px-6">
         <div className="flex items-center justify-between h-16">
           <Link href="/" className="flex items-center">
-            <span className="text-2xl font-bold text-energy-orange">1More</span>
+            <span className="text-2xl font-bold text-energy-orange">1Mo</span>
             <span className="text-2xl font-bold text-victory-gold">Game</span>
           </Link>
           

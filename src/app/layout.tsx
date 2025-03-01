@@ -8,7 +8,7 @@ import { ThemeProvider } from '@/components/ThemeProvider';
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "1More Game - Your Gaming Marketplace in Africa",
+  title: "1Mo Game - Your Gaming Marketplace in Africa",
   description: "Buy game vouchers, in-game currencies, and add-ons instantly with local payment methods.",
 };
 

@@ -1,4 +1,4 @@
-# End-to-End Product Flow for 1More Game
+# End-to-End Product Flow for 1Mo Game
 
 ## 1. Front-End (User Journey)
 

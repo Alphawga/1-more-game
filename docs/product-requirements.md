@@ -1,7 +1,7 @@
-# Product Requirements Document (PRD) for 1More Game
+# Product Requirements Document (PRD) for 1Mo Game
 
 ## Product Overview
-1More Game is a web-based platform with Progressive Web App (PWA) capabilities designed to address critical challenges faced by African gamers. The platform provides an intuitive user experience for purchasing gaming vouchers, in-game currencies, and add-ons, with localized payment methods tailored to Nigeria, Kenya, and South Africa.
+1Mo Game is a web-based platform with Progressive Web App (PWA) capabilities designed to address critical challenges faced by African gamers. The platform provides an intuitive user experience for purchasing gaming vouchers, in-game currencies, and add-ons, with localized payment methods tailored to Nigeria, Kenya, and South Africa.
 
 ## User Personas
 

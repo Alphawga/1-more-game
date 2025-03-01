@@ -34,7 +34,7 @@ export default function Navbar() {
           >
             {/* <Image
               src="/images/logo.png"
-              alt="1More Game"
+              alt="1Mo Game"
               width={40}
               height={40}
               className="mr-2"
@@ -47,7 +47,7 @@ export default function Navbar() {
                 : 'text-white'
             }`}>
               <span className="bg-clip-text text-transparent bg-gradient-to-r from-energy-orange via-victory-gold to-energy-orange bg-size-200 animate-gradient-x">
-                1More
+                1Mo
               </span>
               <span className={`${
                 scrolled 

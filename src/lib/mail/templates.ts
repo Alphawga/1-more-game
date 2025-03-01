@@ -35,7 +35,7 @@ export const emailTemplates = {
       </head>
       <body>
         <div class="container">
-          <h2>Welcome to 1MoreGame${data.name ? `, ${data.name}` : ''}!</h2>
+          <h2>Welcome to 1MoGame${data.name ? `, ${data.name}` : ''}!</h2>
           <p>Please verify your email address by clicking the button below:</p>
           <a href="${data.link}" class="button">Verify Email</a>
           <p>If you didn't create an account with us, you can safely ignore this email.</p>

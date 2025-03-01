@@ -119,7 +119,7 @@ const exclusiveOffers = [
 const features = [
   {
     title: 'INSTANT DELIVERY. LOCAL PAYMENTS.',
-    description: 'Get your game codes and currencies instantly after purchase. 1More Game supports local payment methods including M-Pesa, USSD, and mobile banking, making it easier than ever to pay for your favorite games.',
+    description: 'Get your game codes and currencies instantly after purchase. 1Mo Game supports local payment methods including M-Pesa, USSD, and mobile banking, making it easier than ever to pay for your favorite games.',
     imageSrc: 'https://via.placeholder.com/600x400?text=Local+Payments',
     imageAlt: 'Local payment methods',
   },
@@ -436,7 +436,7 @@ export default function Home() {
               📱
             </div>
             <div>
-              <h3 className="font-bold text-lg">1More Game PWA</h3>
+              <h3 className="font-bold text-lg">1Mo Game PWA</h3>
               <p className="text-sm text-white/80">Install our app for the best gaming experience</p>
             </div>
           </div>

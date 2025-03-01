@@ -12,7 +12,7 @@ export default function Footer() {
         <div className="container mx-auto px-6">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
             <div>
-              <h3 className="text-victory-gold font-bold mb-4 text-lg">1More Game</h3>
+              <h3 className="text-victory-gold font-bold mb-4 text-lg">1Mo Game</h3>
               <p className="text-sm text-cloud-white/80">Your trusted gaming marketplace in Africa</p>
             </div>
             <div>
@@ -47,7 +47,7 @@ export default function Footer() {
           <div className="mt-12 pt-8 border-t border-cloud-white/10">
             <div className="flex items-center justify-between">
               <p className="text-sm text-cloud-white/60">
-                © {new Date().getFullYear()} 1More Game. All rights reserved.
+                © {new Date().getFullYear()} 1Mo Game. All rights reserved.
               </p>
               <ThemeToggle />
             </div>
