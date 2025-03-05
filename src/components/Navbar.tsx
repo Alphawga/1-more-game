@@ -54,7 +54,9 @@ export default function Navbar() {
                   ? theme === 'dark'
                     ? 'text-white'
                     : 'text-black'
-                  : 'text-black'
+                  : theme === 'dark'
+                    ? 'text-white'
+                    : 'text-black'
               }`}>Game</span>
             </span>
           </Link>
@@ -69,7 +71,9 @@ export default function Navbar() {
                     ? theme === 'dark'
                       ? 'text-cloud-white'
                       : 'text-charcoal'
-                    : 'text-pure-white'
+                    : theme === 'dark'
+                      ? 'text-cloud-white'
+                      : 'text-charcoal'
                 }`}
               >
                 {link.label}
@@ -86,7 +90,9 @@ export default function Navbar() {
                   ? theme === 'dark'
                     ? 'text-cloud-white'
                     : 'text-trust-blue'
-                  : 'text-pure-white'
+                  : theme === 'dark'
+                    ? 'text-cloud-white'
+                    : 'text-trust-blue'
               }`}
             >
               <span className="relative z-10">Login</span>
@@ -120,7 +126,7 @@ export default function Navbar() {
       {/* Mobile Menu Dropdown */}
       <div className={`md:hidden transition-all duration-300 ${mobileMenuOpen ? 'block' : 'hidden'}`}>
         <div className={`${
-          theme === 'dark' ? 'bg-digital-black/95' : 'bg-cloud-white/95'
+          theme === 'dark' ? 'bg-digital-black' : ' bg-cloud-white/95'
         }`}>
           {navLinks.map((link) => (
             <Link

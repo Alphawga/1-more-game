@@ -158,22 +158,22 @@ export default function Home() {
       <Navbar />
       
       {/* Top Navigation Links */}
-      <div className="bg-gray-100 dark:bg-gray-900 py-2">
+      <div className="bg-gray-100 dark:bg-gray-900 py-2 dark:text-cloud-white">
         <div className="container mx-auto px-6">
           <div className="flex justify-between items-center">
             <div className="flex space-x-6 text-sm">
-              <Link href="/news" className="hover:text-energy-orange transition-colors duration-300">Gaming News</Link>
-              <Link href="/rewards" className="hover:text-energy-orange transition-colors duration-300">Loyalty Rewards</Link>
-              <Link href="/esports" className="hover:text-energy-orange transition-colors duration-300">eSports</Link>
+              <Link href="/news" className="text-charcoal dark:text-cloud-white hover:text-energy-orange transition-colors duration-300">Gaming News</Link>
+              <Link href="/rewards" className="text-charcoal dark:text-cloud-white hover:text-energy-orange transition-colors duration-300">Loyalty Rewards</Link>
+              <Link href="/esports" className="text-charcoal dark:text-cloud-white hover:text-energy-orange transition-colors duration-300">eSports</Link>
             </div>
             <div className="flex items-center space-x-4">
-              <Link href="/app" className="flex items-center space-x-1 text-sm group">
+/ lm              <Link href="/app" className="flex items-center space-x-1 text-sm group text-charcoal dark:text-cloud-white">
                 <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 group-hover:text-energy-orange transition-colors duration-300" viewBox="0 0 20 20" fill="currentColor">
                   <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-11a1 1 0 10-2 0v2H7a1 1 0 100 2h2v2a1 1 0 102 0v-2h2a1 1 0 100-2h-2V7z" clipRule="evenodd" />
                 </svg>
                 <span className="group-hover:text-energy-orange transition-colors duration-300">Download PWA</span>
               </Link>
-              <div className="flex items-center space-x-2 text-sm">
+              <div className="flex items-center space-x-2 text-sm text-charcoal dark:text-cloud-white">
                 <span>EN</span>
                 <span>|</span>
                 <span>NGN</span>
