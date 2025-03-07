@@ -113,6 +113,7 @@ model OrderItem {
   orderId     String
   order       Order    @relation(fields: [orderId], references: [id])
   productId   String
+  product     Product  @relation(fields: [productId], references: [id])
   quantity    Int
   price       Float
   createdAt   DateTime @default(now())
@@ -124,6 +125,7 @@ model Review {
   userId      String
   user        User     @relation(fields: [userId], references: [id])
   productId   String
+  product     Product  @relation(fields: [productId], references: [id])
   rating      Int
   comment     String?
   createdAt   DateTime @default(now())
@@ -140,6 +142,94 @@ model Notification {
   read        Boolean  @default(false)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
+}
+
+model Product {
+  id          String    @id @default(cuid())
+  name        String
+  slug        String    @unique
+  description String
+  price       Float
+  salePrice   Float?
+  image       String?
+  images      String[]
+  stock       Int       @default(0)
+  isActive    Boolean   @default(true)
+  isFeatured  Boolean   @default(false)
+  sku         String?   @unique
+  
+  // Category relation
+  categoryId  String?
+  category    Category? @relation(fields: [categoryId], references: [id])
+  
+  // Promotions
+  promotions  ProductPromotion[]
+  
+  // Relations
+  orderItems  OrderItem[]
+  reviews     Review[]
+  
+  // Metadata
+  tags        String[]
+  regionCodes String[]  // Array of country/region codes where the product is available
+  
+  // Timestamps
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+}
+
+model Category {
+  id          String    @id @default(cuid())
+  name        String
+  slug        String    @unique
+  description String?
+  image       String?
+  isActive    Boolean   @default(true)
+  
+  // Hierarchy
+  parentId    String?
+  parent      Category? @relation("CategoryHierarchy", fields: [parentId], references: [id])
+  children    Category[] @relation("CategoryHierarchy")
+  
+  // Relations
+  products    Product[]
+  
+  // Timestamps
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+}
+
+model Promotion {
+  id          String    @id @default(cuid())
+  name        String
+  description String?
+  discountType DiscountType
+  discountValue Float
+  code        String?   @unique
+  startDate   DateTime
+  endDate     DateTime
+  isActive    Boolean   @default(true)
+  
+  // Relations
+  products    ProductPromotion[]
+  
+  // Timestamps
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+}
+
+model ProductPromotion {
+  id          String    @id @default(cuid())
+  productId   String
+  product     Product   @relation(fields: [productId], references: [id])
+  promotionId String
+  promotion   Promotion @relation(fields: [promotionId], references: [id])
+  
+  // Timestamps
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  
+  @@unique([productId, promotionId])
 }
 
 enum Role {
@@ -164,4 +254,11 @@ enum NotificationType {
   PROMOTION
   SECURITY
   PAYMENT
+}
+
+enum DiscountType {
+  PERCENTAGE
+  FIXED
+  BUY_X_GET_Y
+  BUNDLE
 } 
