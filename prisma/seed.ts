@@ -1,4 +1,4 @@
-import { PrismaClient } from '@prisma/client';
+import { PrismaClient, Prisma } from '@prisma/client';
 import * as bcrypt from 'bcrypt';
 
 const prisma = new PrismaClient();
@@ -9,7 +9,7 @@ async function main() {
   // Create users: admin and regular users
   const adminPassword = await bcrypt.hash('admin123', 10);
   const userPassword = await bcrypt.hash('user123', 10);
-  
+         
   console.log('Creating users...');
   await prisma.user.upsert({
     where: { email: 'admin@1moregame.com' },
@@ -358,7 +358,7 @@ async function main() {
   const allProducts = await prisma.product.findMany();
   
   // Summer sale promotion for gift cards
-  const giftCardProducts = allProducts.filter(p => 
+  const giftCardProducts = allProducts.filter((p: Prisma.ProductGetPayload<{}>) => 
     p.categoryId === playstationCategory.id || 
     p.categoryId === xboxCategory.id || 
     p.categoryId === steamCategory.id
@@ -419,7 +419,7 @@ async function main() {
     create: {
       id: 'clq987654321',
       orderId: order1.id,
-      productId: allProducts.find(p => p.slug === 'playstation-network-card-10')!.id,
+      productId: allProducts.find((p: Prisma.ProductGetPayload<{}>) => p.slug === 'playstation-network-card-10')!.id,
       quantity: 3,
       price: 10.99,
     },
@@ -444,7 +444,7 @@ async function main() {
     create: {
       id: 'clq987654322',
       orderId: order2.id,
-      productId: allProducts.find(p => p.slug === 'xbox-game-pass-ultimate-1-month')!.id,
+      productId: allProducts.find((p: Prisma.ProductGetPayload<{}>) => p.slug === 'xbox-game-pass-ultimate-1-month')!.id,
       quantity: 1,
       price: 14.99,
     },
@@ -456,7 +456,7 @@ async function main() {
     {
       id: 'clq123456791',
       userId: user1.id,
-      productId: allProducts.find(p => p.slug === 'playstation-network-card-10')!.id,
+      productId: allProducts.find((p: Prisma.ProductGetPayload<{}>) => p.slug === 'playstation-network-card-10')!.id,
       rating: 5,
       comment: 'Great service! The code was delivered instantly, and it worked perfectly.',
       createdAt: new Date('2023-05-16'),
@@ -464,7 +464,7 @@ async function main() {
     {
       id: 'clq123456792',
       userId: user2.id,
-      productId: allProducts.find(p => p.slug === 'xbox-game-pass-ultimate-1-month')!.id,
+      productId: allProducts.find((p: Prisma.ProductGetPayload<{}>) => p.slug === 'xbox-game-pass-ultimate-1-month')!.id,
       rating: 4,
       comment: 'Good value for money. The code worked fine, but the email took a few minutes to arrive.',
       createdAt: new Date('2023-06-21'),
@@ -472,7 +472,7 @@ async function main() {
     {
       id: 'clq123456793',
       userId: user1.id,
-      productId: allProducts.find(p => p.slug === 'free-fire-100-diamonds')!.id,
+      productId: allProducts.find((p: Prisma.ProductGetPayload<{}>) => p.slug === 'free-fire-100-diamonds')!.id,
       rating: 5,
       comment: 'Fast delivery and easy to redeem. Will buy again!',
       createdAt: new Date('2023-05-20'),

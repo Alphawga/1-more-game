@@ -1,40 +1,10 @@
-import { router, publicProcedure, middleware } from '../trpc';
+import { router, publicProcedure } from '../trpc';
 import { z } from 'zod';
 import { prisma } from '../db';
 import { TRPCError } from '@trpc/server';
-
-// Middleware to check admin role
-const isAdmin = middleware(async ({ ctx, next }) => {
-  // Check if user is authenticated and has admin role
-  if (!ctx.session || !ctx.session.user) {
-    throw new TRPCError({
-      code: 'UNAUTHORIZED',
-      message: 'You must be logged in to access this resource',
-    });
-  }
-
-  const user = await prisma.user.findUnique({
-    where: { id: ctx.session.user.id },
-    select: { role: true },
-  });
-
-  if (!user || (user.role !== 'ADMIN' && user.role !== 'SUPER_ADMIN')) {
-    throw new TRPCError({
-      code: 'FORBIDDEN',
-      message: 'You do not have permission to access this resource',
-    });
-  }
-
-  return next({
-    ctx: {
-      ...ctx,
-      user: {
-        ...ctx.session.user,
-        role: user.role,
-      },
-    },
-  });
-});
+import { isAdmin } from '../utils/middleware';
+import { dateRangeSchema, activeFilterSchema } from '../utils/schemas';
+import { Prisma } from '@prisma/client';
 
 // Create an admin-only procedure
 const adminProcedure = publicProcedure.use(isAdmin);
@@ -46,8 +16,7 @@ const promotionSchema = z.object({
   discountType: z.enum(['PERCENTAGE', 'FIXED', 'BUY_X_GET_Y', 'BUNDLE']),
   discountValue: z.number().positive('Discount value must be positive'),
   code: z.string().optional().nullable(),
-  startDate: z.string().or(z.date()),
-  endDate: z.string().or(z.date()),
+  ...dateRangeSchema.shape,
   isActive: z.boolean().default(true),
 });
 
@@ -57,7 +26,6 @@ export const promotionRouter = router({
     .query(async () => {
       const now = new Date();
       
-      // Get all active promotions
       const promotions = await prisma.promotion.findMany({
         where: {
           isActive: true,
@@ -76,13 +44,11 @@ export const promotionRouter = router({
       return promotions;
     }),
 
-  // Get active promotions for a specific product
   getByProductId: publicProcedure
     .input(z.object({ productId: z.string() }))
     .query(async ({ input }) => {
       const now = new Date();
       
-      // Get active promotions for the product
       const productPromotions = await prisma.productPromotion.findMany({
         where: {
           productId: input.productId,
@@ -100,20 +66,17 @@ export const promotionRouter = router({
       return productPromotions.map(pp => pp.promotion);
     }),
 
-  // Admin procedures - only available to admins
+  // Admin procedures
   getAll: adminProcedure
-    .input(
-      z.object({
-        includeInactive: z.boolean().optional().default(false),
-        includeExpired: z.boolean().optional().default(false),
-      })
-    )
+    .input(z.object({
+      ...activeFilterSchema.shape,
+      includeExpired: z.boolean().optional().default(false),
+    }))
     .query(async ({ input }) => {
       const { includeInactive, includeExpired } = input;
       const now = new Date();
       
-      // Build filter conditions
-      const where: any = {};
+      const where: Prisma.PromotionWhereInput = {};
       
       if (!includeInactive) {
         where.isActive = true;
@@ -123,8 +86,7 @@ export const promotionRouter = router({
         where.endDate = { gte: now };
       }
 
-      // Query promotions
-      const promotions = await prisma.promotion.findMany({
+      return prisma.promotion.findMany({
         where,
         include: {
           products: {
@@ -135,50 +97,22 @@ export const promotionRouter = router({
         },
         orderBy: { endDate: 'asc' },
       });
-
-      return promotions;
-    }),
-
-  getById: adminProcedure
-    .input(z.object({ id: z.string() }))
-    .query(async ({ input }) => {
-      const promotion = await prisma.promotion.findUnique({
-        where: { id: input.id },
-        include: {
-          products: {
-            include: {
-              product: true,
-            },
-          },
-        },
-      });
-
-      if (!promotion) {
-        throw new TRPCError({
-          code: 'NOT_FOUND',
-          message: 'Promotion not found',
-        });
-      }
-
-      return promotion;
     }),
 
   create: adminProcedure
-    .input(
-      promotionSchema.extend({
-        productIds: z.array(z.string()).optional(),
-      })
-    )
+    .input(promotionSchema.extend({
+      productIds: z.array(z.string()).optional(),
+    }))
     .mutation(async ({ input }) => {
       const { productIds, ...promotionData } = input;
       
       // Check if code already exists if provided
       if (promotionData.code) {
-        const existingPromotion = await prisma.promotion.findUnique({
+        const existing = await prisma.promotion.findUnique({
           where: { code: promotionData.code },
         });
 
-        if (existingPromotion) {
+        if (existing) {
           throw new TRPCError({
             code: 'CONFLICT',
             message: 'A promotion with this code already exists',
@@ -186,36 +120,20 @@ export const promotionRouter = router({
         }
       }
 
-      // Ensure that startDate and endDate are valid dates
-      const startDate = new Date(promotionData.startDate);
-      const endDate = new Date(promotionData.endDate);
-      
-      // Validate that endDate is after startDate
-      if (endDate <= startDate) {
-        throw new TRPCError({
-          code: 'BAD_REQUEST',
-          message: 'End date must be after start date',
-        });
-      }
-
-      // Create promotion
       const promotion = await prisma.promotion.create({
         data: {
           ...promotionData,
-          startDate,
-          endDate,
+          startDate: new Date(promotionData.startDate),
+          endDate: new Date(promotionData.endDate),
         },
       });
 
-      // If productIds are provided, link products to the promotion
-      if (productIds && productIds.length > 0) {
-        const productPromotions = productIds.map(productId => ({
-          productId,
-          promotionId: promotion.id,
-        }));
-
+      if (productIds?.length) {
         await prisma.productPromotion.createMany({
-          data: productPromotions,
+          data: productIds.map(productId => ({
+            productId,
+            promotionId: promotion.id,
+          })),
         });
       }
 
@@ -223,30 +141,26 @@ export const promotionRouter = router({
     }),
 
   update: adminProcedure
-    .input(
-      z.object({
-        id: z.string(),
-        data: promotionSchema.partial(),
-        productIds: z.array(z.string()).optional(),
-      })
-    )
+    .input(z.object({
+      id: z.string(),
+      data: promotionSchema.partial(),
+      productIds: z.array(z.string()).optional(),
+    }))
     .mutation(async ({ input }) => {
       const { id, data, productIds } = input;
 
-      // Check if promotion exists
-      const existingPromotion = await prisma.promotion.findUnique({
+      const existing = await prisma.promotion.findUnique({
         where: { id },
       });
 
-      if (!existingPromotion) {
+      if (!existing) {
         throw new TRPCError({
           code: 'NOT_FOUND',
           message: 'Promotion not found',
         });
       }
 
-      // If code is changing, check if the new code is already in use
-      if (data.code && data.code !== existingPromotion.code) {
+      if (data.code && data.code !== existing.code) {
         const codeExists = await prisma.promotion.findUnique({
           where: { code: data.code },
         });
@@ -259,68 +173,31 @@ export const promotionRouter = router({
         }
       }
 
-      // Prepare date updates if provided
-      const updateData: any = { ...data };
-      
-      if (data.startDate) {
-        updateData.startDate = new Date(data.startDate);
-      }
-      
-      if (data.endDate) {
-        updateData.endDate = new Date(data.endDate);
-      }
-      
-      // Validate dates if both are being updated
-      if (updateData.startDate && updateData.endDate) {
-        if (updateData.endDate <= updateData.startDate) {
-          throw new TRPCError({
-            code: 'BAD_REQUEST',
-            message: 'End date must be after start date',
-          });
-        }
-      } else if (updateData.startDate && !updateData.endDate) {
-        // Validate with existing end date
-        if (new Date(existingPromotion.endDate) <= updateData.startDate) {
-          throw new TRPCError({
-            code: 'BAD_REQUEST',
-            message: 'End date must be after start date',
-          });
-        }
-      } else if (!updateData.startDate && updateData.endDate) {
-        // Validate with existing start date
-        if (updateData.endDate <= new Date(existingPromotion.startDate)) {
-          throw new TRPCError({
-            code: 'BAD_REQUEST',
-            message: 'End date must be after start date',
-          });
-        }
-      }
+      const updateData = {
+        ...data,
+        ...(data.startDate && { startDate: new Date(data.startDate) }),
+        ...(data.endDate && { endDate: new Date(data.endDate) }),
+      };
 
-      // Update the promotion
-      const updatedPromotion = await prisma.promotion.update({
-        where: { id },
-        data: updateData,
-      });
-
-      // If productIds are provided, update product associations
-      if (productIds !== undefined) {
-        // First delete all existing product associations
-        await prisma.productPromotion.deleteMany({
-          where: { promotionId: id },
-        });
-
-        // Then create new ones if array is not empty
-        if (productIds.length > 0) {
-          const productPromotions = productIds.map(productId => ({
-            productId,
-            promotionId: id,
-          }));
-
-          await prisma.productPromotion.createMany({
-            data: productPromotions,
-          });
-        }
-      }
+      const [updatedPromotion] = await prisma.$transaction([
+        prisma.promotion.update({
+          where: { id },
+          data: updateData,
+        }),
+        ...(productIds !== undefined ? [
+          prisma.productPromotion.deleteMany({
+            where: { promotionId: id },
+          }),
+          ...(productIds.length > 0 ? [
+            prisma.productPromotion.createMany({
+              data: productIds.map(productId => ({
+                productId,
+                promotionId: id,
+              })),
+            }),
+          ] : []),
+        ] : []),
+      ]);
 
       return updatedPromotion;
     }),
@@ -328,27 +205,25 @@ export const promotionRouter = router({
   delete: adminProcedure
     .input(z.object({ id: z.string() }))
     .mutation(async ({ input }) => {
-      // Check if promotion exists
-      const existingPromotion = await prisma.promotion.findUnique({
+      const promotion = await prisma.promotion.findUnique({
         where: { id: input.id },
       });
 
-      if (!existingPromotion) {
+      if (!promotion) {
         throw new TRPCError({
           code: 'NOT_FOUND',
           message: 'Promotion not found',
         });
       }
 
-      // Delete product associations first
-      await prisma.productPromotion.deleteMany({
-        where: { promotionId: input.id },
-      });
-
-      // Delete the promotion
-      await prisma.promotion.delete({
-        where: { id: input.id },
-      });
+      await prisma.$transaction([
+        prisma.productPromotion.deleteMany({
+          where: { promotionId: input.id },
+        }),
+        prisma.promotion.delete({
+          where: { id: input.id },
+        }),
+      ]);
 
       return { success: true };
     }),

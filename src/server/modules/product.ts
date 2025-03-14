@@ -1,40 +1,16 @@
-import { router, publicProcedure, middleware } from '../trpc';
+import { router, publicProcedure } from '../trpc';
 import { z } from 'zod';
 import { prisma } from '../db';
 import { TRPCError } from '@trpc/server';
-
-// Middleware to check admin role
-const isAdmin = middleware(async ({ ctx, next }) => {
-  // Check if user is authenticated and has admin role
-  if (!ctx.session || !ctx.session.user) {
-    throw new TRPCError({
-      code: 'UNAUTHORIZED',
-      message: 'You must be logged in to access this resource',
-    });
-  }
-
-  const user = await prisma.user.findUnique({
-    where: { id: ctx.session.user.id },
-    select: { role: true },
-  });
-
-  if (!user || (user.role !== 'ADMIN' && user.role !== 'SUPER_ADMIN')) {
-    throw new TRPCError({
-      code: 'FORBIDDEN',
-      message: 'You do not have permission to access this resource',
-    });
-  }
-
-  return next({
-    ctx: {
-      ...ctx,
-      user: {
-        ...ctx.session.user,
-        role: user.role,
-      },
-    },
-  });
-});
+import { Prisma } from '@prisma/client';
+import { isAdmin } from '../utils/middleware';
+import { 
+  slugSchema, 
+  imageSchema, 
+  paginationSchema,
+  searchSchema,
+  validateSlugUniqueness 
+} from '../utils/schemas';
 
 // Create an admin-only procedure
 const adminProcedure = publicProcedure.use(isAdmin);
@@ -42,11 +18,11 @@ const adminProcedure = publicProcedure.use(isAdmin);
 // Schema for product creation and updating
 const productSchema = z.object({
   name: z.string().min(2, 'Product name must be at least 2 characters'),
-  slug: z.string().min(2, 'Slug must be at least 2 characters').regex(/^[a-z0-9-]+$/, 'Slug must contain only lowercase letters, numbers, and hyphens'),
+  slug: slugSchema,
   description: z.string(),
   price: z.number().positive('Price must be positive'),
   salePrice: z.number().positive('Sale price must be positive').optional().nullable(),
-  image: z.string().url('Image must be a valid URL').optional().nullable(),
+  image: imageSchema,
   images: z.array(z.string().url('Image URL must be valid')).optional(),
   stock: z.number().int().nonnegative('Stock cannot be negative').default(0),
   isActive: z.boolean().default(true),
@@ -57,28 +33,30 @@ const productSchema = z.object({
   regionCodes: z.array(z.string()).default([]),
 });
 
+// Input schema for product listing
+const productListSchema = z.object({
+  ...paginationSchema.shape,
+  ...searchSchema.shape,
+  categoryId: z.string().optional(),
+  isActive: z.boolean().optional(),
+  featured: z.boolean().optional(),
+  minPrice: z.number().optional(),
+  maxPrice: z.number().optional(),
+  tags: z.array(z.string()).optional(),
+  regionCode: z.string().optional(),
+});
+
 export const productRouter = router({
   // Public procedures - available to all users
   getAll: publicProcedure
-    .input(
-      z.object({
-        limit: z.number().min(1).max(100).optional().default(10),
-        cursor: z.string().optional(),
-        search: z.string().optional(),
-        categoryId: z.string().optional(),
-        featured: z.boolean().optional(),
-        minPrice: z.number().optional(),
-        maxPrice: z.number().optional(),
-        tags: z.array(z.string()).optional(),
-        regionCode: z.string().optional(),
-      })
-    )
+    .input(productListSchema)
     .query(async ({ input }) => {
       const { 
-        limit, 
-        cursor, 
+        limit,
+        page,
         search, 
-        categoryId, 
+        categoryId,
+        isActive,
         featured, 
         minPrice, 
         maxPrice,
@@ -87,9 +65,7 @@ export const productRouter = router({
       } = input;
 
       // Build filter conditions
-      const where: any = {
-        isActive: true,
-      };
+      const where: Prisma.ProductWhereInput = {};
 
       if (search) {
         where.OR = [
@@ -103,16 +79,19 @@ export const productRouter = router({
         where.categoryId = categoryId;
       }
 
+      if (isActive !== undefined) {
+        where.isActive = isActive;
+      }
+
       if (featured) {
         where.isFeatured = featured;
       }
 
-      if (minPrice !== undefined) {
-        where.price = { ...(where.price || {}), gte: minPrice };
-      }
-
-      if (maxPrice !== undefined) {
-        where.price = { ...(where.price || {}), lte: maxPrice };
+      if (minPrice !== undefined || maxPrice !== undefined) {
+        where.price = {
+          ...(minPrice !== undefined ? { gte: minPrice } : {}),
+          ...(maxPrice !== undefined ? { lte: maxPrice } : {})
+        } as Prisma.FloatFilter;
       }
 
       if (tags && tags.length > 0) {
@@ -123,32 +102,27 @@ export const productRouter = router({
         where.regionCodes = { has: regionCode };
       }
 
-      // Get one more item for pagination cursor
-      const products = await prisma.product.findMany({
-        take: limit + 1,
-        where,
-        cursor: cursor ? { id: cursor } : undefined,
-        orderBy: { createdAt: 'desc' },
-        include: {
-          category: true,
-          promotions: {
-            include: {
-              promotion: true,
-            },
-          },
-        },
-      });
+      const skip = (page - 1) * limit;
 
-      // Check if we have a next page
-      let nextCursor: string | null = null;
-      if (products.length > limit) {
-        const nextItem = products.pop();
-        nextCursor = nextItem!.id;
-      }
+      // Get products with pagination
+      const [products, total] = await Promise.all([
+        prisma.product.findMany({
+          take: limit,
+          skip,
+          where,
+          orderBy: { createdAt: 'desc' },
+          include: {
+            category: true,
+          },
+        }),
+        prisma.product.count({ where }),
+      ]);
 
       return {
         products,
-        nextCursor,
+        total,
+        pages: Math.ceil(total / limit),
+        currentPage: page,
       };
     }),
 
@@ -224,100 +198,83 @@ export const productRouter = router({
       return product;
     }),
 
-  // Admin procedures - only available to admins
   create: adminProcedure
     .input(productSchema)
     .mutation(async ({ input }) => {
-      // Check if slug already exists
-      const existingProduct = await prisma.product.findUnique({
-        where: { slug: input.slug },
-      });
-
-      if (existingProduct) {
-        throw new TRPCError({
-          code: 'CONFLICT',
-          message: 'A product with this slug already exists',
-        });
-      }
-
-      // Create the product
-      const product = await prisma.product.create({
-        data: {
-          ...input,
-          images: input.images || [],
-          tags: input.tags || [],
-          regionCodes: input.regionCodes || [],
-        },
-      });
-
-      return product;
+      await validateSlugUniqueness(prisma, 'product', input.slug);
+      return prisma.product.create({ data: input });
     }),
 
   update: adminProcedure
-    .input(
-      z.object({
-        id: z.string(),
-        data: productSchema.partial(),
-      })
-    )
+    .input(z.object({
+      id: z.string(),
+      data: productSchema.partial(),
+    }))
     .mutation(async ({ input }) => {
       const { id, data } = input;
+      if (data.slug) {
+        await validateSlugUniqueness(prisma, 'product', data.slug, id);
+      }
+      return prisma.product.update({ where: { id }, data });
+    }),
 
-      // Check if product exists
-      const existingProduct = await prisma.product.findUnique({
-        where: { id },
+  updateStatus: adminProcedure
+    .input(z.object({ id: z.string() }))
+    .mutation(async ({ input }) => {
+      const product = await prisma.product.findUnique({
+        where: { id: input.id },
+        select: { isActive: true },
       });
 
-      if (!existingProduct) {
+      if (!product) {
         throw new TRPCError({
           code: 'NOT_FOUND',
           message: 'Product not found',
         });
       }
 
-      // If slug is changing, check if the new slug is already in use
-      if (data.slug && data.slug !== existingProduct.slug) {
-        const slugExists = await prisma.product.findUnique({
-          where: { slug: data.slug },
-        });
+      return prisma.product.update({
+        where: { id: input.id },
+        data: { isActive: !product.isActive },
+      });
+    }),
 
-        if (slugExists) {
-          throw new TRPCError({
-            code: 'CONFLICT',
-            message: 'A product with this slug already exists',
-          });
-        }
-      }
-
-      // Update the product
-      const updatedProduct = await prisma.product.update({
-        where: { id },
-        data,
+  updateFeatured: adminProcedure
+    .input(z.object({ id: z.string() }))
+    .mutation(async ({ input }) => {
+      const product = await prisma.product.findUnique({
+        where: { id: input.id },
+        select: { isFeatured: true },
       });
 
-      return updatedProduct;
+      if (!product) {
+        throw new TRPCError({
+          code: 'NOT_FOUND',
+          message: 'Product not found',
+        });
+      }
+
+      return prisma.product.update({
+        where: { id: input.id },
+        data: { isFeatured: !product.isFeatured },
+      });
     }),
 
   delete: adminProcedure
     .input(z.object({ id: z.string() }))
     .mutation(async ({ input }) => {
-      // Check if product exists
-      const existingProduct = await prisma.product.findUnique({
+      const product = await prisma.product.findUnique({
         where: { id: input.id },
       });
 
-      if (!existingProduct) {
+      if (!product) {
         throw new TRPCError({
           code: 'NOT_FOUND',
           message: 'Product not found',
         });
       }
 
-      // Delete the product
-      await prisma.product.delete({
-        where: { id: input.id },
-      });
-
+      await prisma.product.delete({ where: { id: input.id } });
       return { success: true };
     }),
 }); 

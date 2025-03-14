@@ -1,40 +1,13 @@
-import { router, publicProcedure, middleware } from '../trpc';
+import { router, publicProcedure } from '../trpc';
 import { z } from 'zod';
 import { prisma } from '../db';
 import { TRPCError } from '@trpc/server';
-
-// Middleware to check admin role
-const isAdmin = middleware(async ({ ctx, next }) => {
-  // Check if user is authenticated and has admin role
-  if (!ctx.session || !ctx.session.user) {
-    throw new TRPCError({
-      code: 'UNAUTHORIZED',
-      message: 'You must be logged in to access this resource',
-    });
-  }
-
-  const user = await prisma.user.findUnique({
-    where: { id: ctx.session.user.id },
-    select: { role: true },
-  });
-
-  if (!user || (user.role !== 'ADMIN' && user.role !== 'SUPER_ADMIN')) {
-    throw new TRPCError({
-      code: 'FORBIDDEN',
-      message: 'You do not have permission to access this resource',
-    });
-  }
-
-  return next({
-    ctx: {
-      ...ctx,
-      user: {
-        ...ctx.session.user,
-        role: user.role,
-      },
-    },
-  });
-});
+import { isAdmin } from '../utils/middleware';
+import { 
+  slugSchema, 
+  imageSchema, 
+} from '../utils/schemas';
+import { Prisma } from '@prisma/client';
 
 // Create an admin-only procedure
 const adminProcedure = publicProcedure.use(isAdmin);
@@ -42,9 +15,9 @@ const adminProcedure = publicProcedure.use(isAdmin);
 // Schema for category creation and updating
 const categorySchema = z.object({
   name: z.string().min(2, 'Category name must be at least 2 characters'),
-  slug: z.string().min(2, 'Slug must be at least 2 characters').regex(/^[a-z0-9-]+$/, 'Slug must contain only lowercase letters, numbers, and hyphens'),
+  slug: slugSchema,
   description: z.string().optional(),
-  image: z.string().url('Image must be a valid URL').optional().nullable(),
+  image: imageSchema,
   isActive: z.boolean().default(true),
   parentId: z.string().optional().nullable(),
 });
@@ -61,14 +34,12 @@ export const categoryRouter = router({
     .query(async ({ input }) => {
       const { includeInactive, includeProducts } = input;
 
-      // Build filter conditions
-      const where: any = {};
+      const where: Prisma.CategoryWhereInput = {};
       
       if (!includeInactive) {
         where.isActive = true;
       }
 
-      // Query categories
       const categories = await prisma.category.findMany({
         where,
         include: {
